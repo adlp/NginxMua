@@ -1,0 +1,32 @@
+nginx-mua:
+    container_name: nginx-mua
+    hostname: nginx-mua
+    image: nginx:1.21.0-perl
+    ports:
+        - 0.0.0.0:110:110
+        - 0.0.0.0:995:995
+        - 0.0.0.0:143:143
+        - 0.0.0.0:993:993
+        #- 0.0.0.0:588:587
+        - 0.0.0.0:587:587
+        #- 0.0.0.0:466:465
+        - 0.0.0.0:466:466
+    #network_mode: host
+    net: host
+    volumes:
+        - /home/_Dockers/nginx-mua/nginx.conf:/etc/nginx/nginx.conf:ro
+        - /home/_Dockers/nginx-mua/conf.d:/etc/nginx/conf.d:ro
+        - /home/_Dockers/nginx-mua/include.d:/etc/nginx/include.d:ro
+        - /home/_Dockers/nginx-mua/ssl.d:/etc/nginx/ssl.d:ro
+        - /home/_Dockers/nginx-mua/perl-lib:/etc/nginx/perl/lib:ro
+        - /home/_Dockers/letsencrypt/etc+letsencrypt:/etc/letsencrypt:ro
+        - /home/_Dockers/nginx-mua/static:/var/www:ro
+    restart: always
+    log_driver: syslog
+    log_opt:
+        syslog-address: udp://127.0.0.1:514
+        syslog-facility: local0
+        tag: nginx-mua
+    extra_hosts:
+        - upstreams:172.17.0.1
+

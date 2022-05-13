@@ -1,0 +1,27 @@
+#!/usr/bin/perl
+
+
+use Data::Dumper;
+
+my $mapfile="/etc/nginx/perl/lib/dom2srv.txt";
+
+open(FD,"<",$mapfile);
+
+my %hash;
+while(<FD>)
+{
+    print "===\n";
+    print $_;
+    chomp;
+    my @cdc=split(/;/,$_);
+    #dom;host;smtp;pop;imap
+    $hash{$cdc[0]}{$cdc[1]}{'smtp'}=587;
+    if(defined($cdc[2]) and $cdc[2] != "") { $hash{$cdc[0]}{$cdc[1]}{'smtp'}=$cdc[2] }
+    $hash{$cdc[0]}{$cdc[1]}{'pop3'}=110;
+    if(defined($cdc[2]) and $cdc[2] != "") { $hash{$cdc[0]}{$cdc[1]}{'pop3'}=$cdc[2] }
+    $hash{$cdc[0]}{$cdc[1]}{'imap'}=143;
+    if(defined($cdc[2]) and $cdc[2] != "") { $hash{$cdc[0]}{$cdc[1]}{'imap'}=$cdc[2] }
+}
+close(FD);
+
+print Dumper(\%hash);

@@ -1,0 +1,42 @@
+package mailauth;
+use nginx;
+use DBI;
+my $dsn="DBI:mysql:database=DBNAME;host=HOSTNAME";
+our $dbh=DBI->connect_cached($dsn, 'dbusername', 'dbpass', {AutoCommit => 1});
+our $sth=$dbh->prepare("select password,mail_server from mailaccounts where username=? limit 1");
+
+our $auth_ok;
+our $mail_server_ip={};
+our $protocol_ports={};
+$mail_server_ip->{'mailhost01'}="192.168.1.22";
+$mail_server_ip->{'mailhost02'}="192.168.1.33";
+$protocol_ports->{'pop3'}=110;
+$protocol_ports->{'imap'}=143;
+
+sub handler {
+  my $r = shift;
+  $auth_ok=0;
+
+  $sth->execute($r->header_in("Auth-User"));
+  my $hash=$sth->fetchrow_hashref();
+  # assuming that the query results password and mail_server
+  # assuming that the password is in crypt format
+
+  if (crypt($r->header_in("Auth-Pass"), $hash->{'password'}) eq $r->header_in("Auth-Pass")){
+    $auth_ok=1;
+  }
+  if ($auth_ok==1){
+    $r->header_out("Auth-Status", "OK") ;
+    $r->header_out("Auth-Server", $mail_server_ip->{$hash->{'mail_server'}});
+    $r->header_out("Auth-Port", $protocol_ports->{$r->header_in("Auth-Protocol")});
+  } else {
+    $r->header_out("Auth-Status", "Invalid login or password") ;
+  }
+
+  $r->send_http_header("text/html");
+
+  return OK;
+}
+
+1;
+__END__ 
